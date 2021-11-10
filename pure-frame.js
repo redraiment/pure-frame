@@ -268,24 +268,43 @@ const defineTransformer = defineFormula;
 /* # View */
 
 /**
- * Define view: connect the formulas and pure function view.
- * - subscriptions: if list of watching formulas.
+ * Wrap dispatcher with event aliases.
+ */
+const wrapDispatcher = (dispatcher, aliases) =>
+  ([id, ...eventParams], ...params) =>
+    dispatcher([aliases[id] || id, ...eventParams], ...params);
+
+/**
+ * Define view: connect formulas and events with pure function view.
+ * - inject: list of watching formulas.
+ * - events: map of firing events.
+ *           key is event id.
+ *           value is event id alias, to avoid naming conflicts.
  * - view: pure function component.
  */
-const defineView = (subscriptions, view) => {
+const defineView = ({ inject = [], events = {} }, view) => {
     const id = uuid();
+    const dispatchers = {
+        dispatch: wrapDispatcher(dispatch, events),
+        dispatchSync: wrapDispatcher(dispatchSync, events),
+        dispatchLater: wrapDispatcher(dispatchLater, events)
+    };
     return props => {
-        const states = subscriptions.map(deref).map(useState);
+        const states = inject.map(deref).map(useState);
         useEffect(() => {
             const setters = states.map(state => state[1]);
-            defineFormula(id, subscriptions, (...params) => {
+            defineFormula(id, inject, (...params) => {
                 setters.forEach((setter, index) => {
                     setter(params[index]);
                 });
             });
         }, []);
         const getters = states.map(state => state[0]);
-        return view(...getters, props);
+        return view({
+            ...props,
+            autowired: getters,
+            dispatchers
+        });
     };
 };
 

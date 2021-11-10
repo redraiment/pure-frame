@@ -126,12 +126,12 @@ const dispatchSync = event => {
 /**
  * Dispatch `event` asynchronized after `ms` millseconds.
  */
-const dispatchLater = (ms, event) => setTimeout(() => dispatchSync(event), ms);
+const dispatchLater = (event, ms) => setTimeout(() => dispatchSync(event), ms);
 
 /**
  * Dispatch `event` asynchronized.
  */
-const dispatch = event => dispatchLater(0, event);
+const dispatch = event => dispatchLater(event, 0);
 
 /* # Effect Handlers */
 

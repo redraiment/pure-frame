@@ -173,8 +173,7 @@ const standardInterceptors = [{
 
         const fx = context.getIn(['effects', 'fx']);
         if (isList(fx)) {
-            fx.toJS()
-                .filter(([effect]) => effect in effects)
+            fx.filter(([effect]) => effect in effects)
                 .forEach(([effect, ...params]) => effects[effect](...params));
         }
 
@@ -211,7 +210,7 @@ const wrapWorldEventHandlerToInterceptor = (id, fn) => ({
     before: context => {
         const world = context.get('world');
         const event = context.get('event');
-        const effects = fn(world, event.toJS());
+        const effects = fn(world, event);
         return context.mergeDeep(fromJS({ effects }));
     }
 });
@@ -318,9 +317,11 @@ const defineView = ({ inject = {}, events = {} }, view) => {
             });
         }, []);
 
+        const getters = states.map(state => state[0]).map(getter =>
+            isMap(getter) || isList(getter)? getter.toJS(): getter)
         const autowired = Object.fromEntries(
             Object.values(inject)
-                .map((prop, index) => [prop, states[index][0]]));
+                .map((prop, index) => [prop, getters[index]]));
         return React.createElement(view, {
             ...props,
             ...autowired,

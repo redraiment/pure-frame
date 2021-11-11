@@ -321,11 +321,11 @@ const defineView = ({ inject = {}, events = {} }, view) => {
         const autowired = Object.fromEntries(
             Object.values(inject)
                 .map((prop, index) => [prop, states[index][0]]));
-        return view({
+        return React.createElement(view, {
             ...props,
             ...autowired,
             ...dispatchers
-        });
+        }, props.children);
     };
 };
 

@@ -268,42 +268,62 @@ const defineTransformer = defineFormula;
 /* # View */
 
 /**
- * Wrap dispatcher with event aliases.
+ * Generates dispatchers with events declares.
  */
-const wrapDispatcher = (dispatcher, aliases) =>
-  ([id, ...eventParams], ...params) =>
-    dispatcher([aliases[id] || id, ...eventParams], ...params);
+const dispatchersOf = events => Object.fromEntries(
+    Object.entries(events)
+        .map(([prop, event]) =>
+            [prop, typeof(event) === 'string'? {id: event}: event])
+        .map(([prop, { id, mode = 'async', ms = 0 }]) => {
+            switch (mode) {
+            case 'sync':
+                return [prop, (...params) =>
+                    dispatchSync([id, ...params])];
+            case 'later':
+                return [prop, (...params) =>
+                    dispatchLater([id, ...params], ms)];
+            default:
+                return [prop, (...params) =>
+                    dispatch([id, ...params])];
+            }
+        }));
 
 /**
  * Define view: connect formulas and events with pure function view.
- * - inject: list of watching formulas.
+ * - inject: map of watching formulas.
+ *           key is formula id.
+ *           value is prop name of component, the value of formula.
  * - events: map of firing events.
- *           key is event id.
- *           value is event id alias, to avoid naming conflicts.
+ *           key is prop name of component, the function to dispatch event.
+ *           value is string event id, or object {
+ *             id: string, // event id.
+ *             mode: 'async' | 'sync' | 'later', // 'async' default.
+ *             ms: number // 'later' mode only, 0 default.
+ *           }.
  * - view: pure function component.
  */
-const defineView = ({ inject = [], events = {} }, view) => {
+const defineView = ({ inject = {}, events = {} }, view) => {
     const id = uuid();
-    const dispatchers = {
-        dispatch: wrapDispatcher(dispatch, events),
-        dispatchSync: wrapDispatcher(dispatchSync, events),
-        dispatchLater: wrapDispatcher(dispatchLater, events)
-    };
+    const dispatchers = dispatchersOf(events);
     return props => {
-        const states = inject.map(deref).map(useState);
+        const formulas = Object.keys(inject);
+        const states = formulas.map(deref).map(useState);
         useEffect(() => {
             const setters = states.map(state => state[1]);
-            defineFormula(id, inject, (...params) => {
+            defineFormula(id, formulas, (...params) => {
                 setters.forEach((setter, index) => {
                     setter(params[index]);
                 });
             });
         }, []);
-        const getters = states.map(state => state[0]);
+
+        const autowired = Object.fromEntries(
+            Object.values(inject)
+                .map((prop, index) => [prop, states[index][0]]));
         return view({
             ...props,
-            autowired: getters,
-            dispatchers
+            ...autowired,
+            ...dispatchers
         });
     };
 };

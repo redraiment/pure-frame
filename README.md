@@ -57,14 +57,13 @@ import ReactDOM from 'react-dom';
 
 import {
     PureFrameRoot,
-    dispatch,
-    defineStateEventHandler,
     defineExtractor,
+    defineStateEventHandler,
     defineView,
 } from 'pure-frame';
 
 // Step 1: create pure function component.
-const Viewport = defineView([':count'], count => (
+const ClickCount = ({ count, increase }) => (
     <>
       <h1>Hello pure-frame</h1>
       <p>
@@ -72,22 +71,32 @@ const Viewport = defineView([':count'], count => (
         <span>{count}</span>
       </p>
       <p>
-        <button onClick={() => dispatch([':increase'])}>Increase</button>
+        <button onClick={increase}>Increase</button>
       </p>
     </>
-));
+);
 
-// Step 2: provide data (from application global state) for component.
+// Step 2: define view, injects formulas and declares events.
+const ClickCountView = defineView({
+    inject: {
+        ':count': 'count'
+    },
+    events: {
+        'increase': ':increase'
+    }
+}, ClickCount);
+
+// Step 3: provide data (from application global state) for component.
 defineExtractor(':count', 'count');
 
-// Step 3: handle event from component.
+// Step 4: handle event from component.
 defineStateEventHandler(':increase', state =>
     state.update('count', count => count + 1));
 
-// Step 0: initialize
+// Step 5: Compose components.
 ReactDOM.render(
     <PureFrameRoot state={{ count: 0 }}>
-      <Viewport />
+      <ClickCountView />
     </PureFrameRoot>,
     document.getElementById('app')
 );

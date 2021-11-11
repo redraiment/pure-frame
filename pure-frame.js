@@ -173,7 +173,8 @@ const standardInterceptors = [{
 
         const fx = context.getIn(['effects', 'fx']);
         if (isList(fx)) {
-            fx.filter(([effect]) => effect in effects)
+            fx.toJS()
+                .filter(([effect]) => effect in effects)
                 .forEach(([effect, ...params]) => effects[effect](...params));
         }
 

@@ -1,5 +1,6 @@
 # 2021-11
 
+* v0.0.8 @ 2021-11-11 : Unpacking `effect`.
 * v0.0.7 @ 2021-11-11 : Non-invasive component refacturing.
 * v0.0.6 @ 2021-11-10 : Connect formulas and events to view function as props.
 * v0.0.5 @ 2021-11-10 : Move `event` of dispatchLater to the 1st place.

@@ -303,28 +303,28 @@ const dispatchersOf = events => Object.fromEntries(
  * - view: pure function component.
  */
 const defineView = ({ inject = {}, events = {} }, view) => {
-    const id = uuid();
+    const formulaIds = Object.keys(inject);
+    const injectionNames = Object.values(inject);
     const dispatchers = dispatchersOf(events);
     return props => {
-        const formulas = Object.keys(inject);
-        const states = formulas.map(deref).map(useState);
+        const states = formulaIds.map(deref).map(useState);
+        const getters = states
+              .map(state => state[0])
+              .map(getter => isMap(getter) || isList(getter)? getter.toJS(): getter);
+        const injections = Object.fromEntries(injectionNames.map((name, index) => [name, getters[index]]));
+
         useEffect(() => {
             const setters = states.map(state => state[1]);
-            defineFormula(id, formulas, (...params) => {
+            defineFormula(uuid(), formulaIds, (...params) => {
                 setters.forEach((setter, index) => {
                     setter(params[index]);
                 });
             });
         }, []);
 
-        const getters = states.map(state => state[0]).map(getter =>
-            isMap(getter) || isList(getter)? getter.toJS(): getter)
-        const autowired = Object.fromEntries(
-            Object.values(inject)
-                .map((prop, index) => [prop, getters[index]]));
         return React.createElement(view, {
             ...props,
-            ...autowired,
+            ...injections,
             ...dispatchers
         }, props.children);
     };

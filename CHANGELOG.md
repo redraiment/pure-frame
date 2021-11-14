@@ -1,5 +1,6 @@
 # 2021-11
 
+* v0.0.11 @ 2021-11-14 : Refacturing defineView.
 * v0.0.10 @ 2021-11-11 : Always use immutable-js except views.
 * v0.0.9 @ 2021-11-11 : Use React.createElement rather than call function.
 * v0.0.8 @ 2021-11-11 : Unpacking `effect`.

@@ -195,8 +195,8 @@ const fetch = (id, ...params) => ({
     id,
     before: context => {
         const fetcher = fetchers[id];
-        const snapshot = fetcher(context.get('snapshots'), params);
-        return context.setIn(['snapshots', id], snapshot);
+        const snapshot = fetcher(context.get('snapshots'), ...params.map(fromJS));
+        return context.setIn(['snapshots', id], fromJS(snapshot));
     }
 });
 

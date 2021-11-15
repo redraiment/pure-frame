@@ -1,5 +1,6 @@
 # 2021-11
 
+* v0.0.13 @ 2021-11-15 : Packing inputs & outputs of fetcher to immutable.
 * v0.0.12 @ 2021-11-15 : Renaming again.
 * v0.0.11 @ 2021-11-14 : Refacturing defineView.
 * v0.0.10 @ 2021-11-11 : Always use immutable-js except views.

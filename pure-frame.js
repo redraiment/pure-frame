@@ -9,7 +9,7 @@ const { v4: uuid } = require('uuid');
 /**
  * Cache the latest value of state, extractors and transformers.
  */
-const caches = {
+const snapshots = {
     state: fromJS({}) // Preset Global State
 };
 
@@ -27,19 +27,19 @@ const dependencies = {
 };
 
 /**
- * Events and Handlers.
+ * Events and Reducers.
  */
-const events = {};
+const reducers = {};
 
 /**
- * Data Sources and Handlers.
+ * Data Sources and Fetchers.
  */
-const dataSources = {};
+const fetchers = {};
 
 /**
- * Effects and Handlers;
+ * Effects and Performers;
  */
-const effects = {};
+const performers = {};
 
 /* # Compute Management */
 
@@ -62,10 +62,10 @@ const compute = id => {
  * The result will be cached.
  */
 computeIfAbsent = id => {
-    if (!(id in caches)) {
-        caches[id] = compute(id);
+    if (!(id in snapshots)) {
+        snapshots[id] = compute(id);
     }
-    return caches[id];
+    return snapshots[id];
 };
 
 /**
@@ -85,16 +85,16 @@ const defineFormula = (id, upstreams, fn) => {
     });
 };
 
-/* # Data Management */
+/* # Snapshots */
 
 /**
  * reset the value of `id`.
  * When the value changed, downstream formulas of `id` will be re-computed.
  */
 const reset = (id, newValue) => {
-    const origin = caches[id];
+    const origin = snapshots[id];
     if (!is(origin, newValue)) {
-        caches[id] = newValue;
+        snapshots[id] = newValue;
         const downstreams = dependencies.downstreams[id] || [];
         downstreams.filter(downstream => downstream in formulas)
             .forEach(downstream => reset(downstream, compute(downstream)));
@@ -114,13 +114,13 @@ const deref = computeIfAbsent;
  */
 const dispatchSync = event => {
     const id = isList(event)? event.get(0): event[0];
-    if (!(id in events)) {
-        console.warn(`No handler for event ${event}`);
+    if (!(id in reducers)) {
+        console.warn(`No reducer for event ${event}`);
         return;
     }
-    const chain = events[id];
-    let context = fromJS({ world: {}, effects: {}, event });
-    chain.reduce((context, handler) => handler(context), context);
+    const chain = reducers[id];
+    let context = fromJS({ snapshots: {}, effects: {}, event });
+    chain.reduce((context, reducer) => reducer(context), context);
 };
 
 /**
@@ -133,19 +133,19 @@ const dispatchLater = (event, ms) => setTimeout(() => dispatchSync(event), ms);
  */
 const dispatch = event => dispatchLater(event, 0);
 
-/* # Effect Handlers */
+/* # Effect Performers */
 
 /**
- * Define custome effect handler.
+ * Define effect performer.
  */
-const defineEffectHandler = (id, handler) => effects[id] = handler;
+const definePerformer = (id, performer) => performers[id] = performer;
 
 /**
- * Preset effect handlers.
+ * Preset effect performers.
  */
-defineEffectHandler('dispatch', dispatch);
-defineEffectHandler('dispatch-later', dispatchLater);
-defineEffectHandler('dispatch-sync', dispatchSync);
+definePerformer('dispatch', dispatch);
+definePerformer('dispatch-later', dispatchLater);
+definePerformer('dispatch-sync', dispatchSync);
 
 /* # Interceptors */
 
@@ -154,15 +154,15 @@ defineEffectHandler('dispatch-sync', dispatchSync);
  */
 const standardInterceptors = [{
     /**
-     * Inject state into world of context.
+     * Inject state into snapshots of context.
      */
     id: 'inject-state',
-    before: context => context.setIn(['world', 'state'], deref('state'))
+    before: context => context.setIn(['snapshots', 'state'], deref('state'))
 }, {
     /**
-     * Process effects:
+     * Perform effects:
      * 1. Reset state if provided.
-     * 2. Process ordered effects in fx of effects..
+     * 2. Perform ordered effects in fx.
      */
     id: 'do-fx',
     after: context => {
@@ -173,87 +173,87 @@ const standardInterceptors = [{
 
         const fx = context.getIn(['effects', 'fx']);
         if (isList(fx)) {
-            fx.filter(([effect]) => effect in effects)
-                .forEach(([effect, ...params]) => effects[effect](...params));
+            fx.filter(([effect]) => effect in performers)
+                .forEach(([effect, ...params]) => performers[effect](...params));
         }
 
         return context;
     }
 }];
 
-/* # Data Sources/Coeffects Handlers */
+/* # Data Sources and Fetchers */
 
 /**
- * Define custome data source.
+ * Define data source and fetcher.
  */
-const defineDataSource = (id, handler) => dataSources[id] = handler;
+const defineFetcher = (id, fetcher) => fetchers[id] = fetcher;
 
 /**
- * Wrap dataSource handler to interceptor.
+ * Wrap dataSource fetcher to interceptor.
  */
-const dataSource = (id, ...params) => ({
+const fetch = (id, ...params) => ({
     id,
     before: context => {
-        const handler = dataSources[id];
-        const dataSource = handler(context.get('world'), params);
-        return context.setIn(['world', id], dataSource);
+        const fetcher = fetchers[id];
+        const snapshot = fetcher(context.get('snapshots'), params);
+        return context.setIn(['snapshots', id], snapshot);
     }
 });
 
-/* # Event Handlers */
+/* # Event Reducers */
 
 /**
- * Wrap event handler to interceptor.
+ * Wrap event reducer to interceptor.
  */
-const wrapWorldEventHandlerToInterceptor = (id, fn) => ({
+const wrapReducerToInterceptor = (id, fn) => ({
     id,
     before: context => {
-        const world = context.get('world');
+        const snapshots = context.get('snapshots');
         const event = context.get('event');
-        const effects = fn(world, event);
+        const effects = fn(snapshots, event);
         return context.mergeDeep(fromJS({ effects }));
     }
 });
 
 /**
- * Define world event handler.
+ * Define reducer.
  * - id: event id.
- * - interceptors: the interceptors between standard interceptors and handler.
- * - handler: world event handler.
+ * - interceptors: the interceptors between standard interceptors and reducer.
+ * - reducer: reducer.
  */
-const defineWorldEventHandler = (id, interceptors, handler) => {
+const defineReducer = (id, interceptors, reducer) => {
     const chain = [...standardInterceptors,
                    ...interceptors,
-                   wrapWorldEventHandlerToInterceptor(id, handler)];
-    events[id] = [];
+                   wrapReducerToInterceptor(id, reducer)];
+    reducers[id] = [];
 
     chain.filter(interceptor => typeof(interceptor.before) === 'function')
         .map(interceptor => interceptor.before)
-        .forEach(before => events[id].push(before));
+        .forEach(before => reducers[id].push(before));
     chain.reverse()
         .filter(interceptor => typeof(interceptor.after) === 'function')
         .map(interceptor => interceptor.after)
-        .forEach(after => events[id].push(after));
+        .forEach(after => reducers[id].push(after));
 };
 
 /**
- * Wrap state event handler to world event handler.
+ * Wrap state reducer to reducer.
  */
-const wrapStateEventHandlerToWorldEventHandler = handler => (coffects, event) => fromJS({ state: handler(coffects.get('state'), event) });
+const wrapStateReducerToReducer = reducer => (coffects, event) => fromJS({ state: reducer(coffects.get('state'), event) });
 
 /**
- * Define state event handler.
+ * Define state reducer.
  * - id: event id.
- * - handler: state handler.
+ * - reducer: state reducer.
  */
-const defineStateEventHandler = (id, handler) => defineWorldEventHandler(id, [], wrapStateEventHandlerToWorldEventHandler(handler));
+const defineStateReducer = (id, reducer) => defineReducer(id, [], wrapStateReducerToReducer(reducer));
 
 /* # Query */
 
 /**
- * Define state data extractor: extract the data from `state`.
+ * Define state extractor: extract the data from `state`.
  * - id: formula id.
- * - ...path: the data path of state.
+ * - ...path: the data path in state.
  */
 const defineExtractor = (id, ...path) => defineFormula(id, ['state'], state => state.getIn(path));
 
@@ -343,11 +343,11 @@ module.exports = {
     dispatchSync,
     dispatchLater,
     dispatch,
-    defineDataSource,
-    dataSource,
-    defineEffectHandler,
-    defineWorldEventHandler,
-    defineStateEventHandler,
+    defineFetcher,
+    fetch,
+    definePerformer,
+    defineReducer,
+    defineStateReducer,
     defineExtractor,
     defineTransformer,
     defineView,

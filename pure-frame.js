@@ -7,6 +7,7 @@ const { v4: uuid } = require('uuid');
 /* # Common Utilities */
 
 const isA = (o, type) => typeof(o) === type;
+const isUndefined = o => isA(o, 'undefined');
 const isString = o => isA(o, 'string');
 const isFuntion = o => isA(o, 'function');
 const isArray = o => Array.isArray(o);
@@ -240,10 +241,14 @@ const wrapReducerToInterceptor = (id, fn) => ({
 /**
  * Define reducer.
  * - id: action id.
- * - interceptors: the interceptors between standard interceptors and reducer.
+ * - interceptors: optional interceptors between standard interceptors and reducer.
  * - reducer: reducer.
  */
 const defineReducer = (id, interceptors, reducer) => {
+    if (isUndefined(reducer)) {
+        reducer = interceptors;
+        interceptors = [];
+    }
     const chain = [...standardInterceptors,
                    ...interceptors,
                    wrapReducerToInterceptor(id, reducer)];

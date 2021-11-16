@@ -141,6 +141,20 @@ const dispatchLater = (action, ms) => setTimeout(() => dispatchSync(action), ms)
  */
 const dispatch = action => dispatchLater(action, 0);
 
+/**
+ * Generic Dispatch.
+ */
+const dispatchGeneric = (action, mode = 'async', ms = 0) => {
+    switch (mode) {
+    case 'sync':
+        return dispatchSync(action);
+    case 'later':
+        return dispatchLater(action, ms);
+    default:
+        return dispatch(action);
+    }
+};
+
 /* # Effect Performers */
 
 /**
@@ -281,20 +295,9 @@ const defineTransformer = defineFormula;
 const dispatchersOf = actions => Object.fromEntries(
     Object.entries(actions)
         .map(([prop, action]) =>
-            [prop, typeof(action) === 'string'? {id: action}: action])
-        .map(([prop, { id, mode = 'async', ms = 0 }]) => {
-            switch (mode) {
-            case 'sync':
-                return [prop, (...params) =>
-                    dispatchSync([id, ...params])];
-            case 'later':
-                return [prop, (...params) =>
-                    dispatchLater([id, ...params], ms)];
-            default:
-                return [prop, (...params) =>
-                    dispatch([id, ...params])];
-            }
-        }));
+            [prop, isString(action)? { id: action }: action])
+        .map(([prop, { id, mode = 'async', ms = 0 }]) =>
+            [prop, (...params) => dispatchGeneric([id, ...params], mode, ms)]));
 
 /**
  * Define view: connect formulas and action with pure function view.

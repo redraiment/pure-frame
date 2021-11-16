@@ -27,7 +27,7 @@ const dependencies = {
 };
 
 /**
- * Events and Reducers.
+ * Actions and Reducers.
  */
 const reducers = {};
 
@@ -107,31 +107,31 @@ const reset = (id, newValue) => {
  */
 const deref = computeIfAbsent;
 
-/* # Event Dispatch */
+/* # Action Dispatch */
 
 /**
- * Dispatch `event` synchronized.
+ * Dispatch `action` synchronized.
  */
-const dispatchSync = event => {
-    const id = isList(event)? event.get(0): event[0];
+const dispatchSync = action => {
+    const id = isList(action)? action.get(0): action[0];
     if (!(id in reducers)) {
-        console.warn(`No reducer for event ${event}`);
+        console.warn(`No reducer for action ${action}`);
         return;
     }
     const chain = reducers[id];
-    let context = fromJS({ snapshots: {}, effects: {}, event });
+    let context = fromJS({ snapshots: {}, effects: {}, action });
     chain.reduce((context, reducer) => reducer(context), context);
 };
 
 /**
- * Dispatch `event` asynchronized after `ms` millseconds.
+ * Dispatch `action` asynchronized after `ms` millseconds.
  */
-const dispatchLater = (event, ms) => setTimeout(() => dispatchSync(event), ms);
+const dispatchLater = (action, ms) => setTimeout(() => dispatchSync(action), ms);
 
 /**
- * Dispatch `event` asynchronized.
+ * Dispatch `action` asynchronized.
  */
-const dispatch = event => dispatchLater(event, 0);
+const dispatch = action => dispatchLater(action, 0);
 
 /* # Effect Performers */
 
@@ -200,24 +200,24 @@ const fetch = (id, ...params) => ({
     }
 });
 
-/* # Event Reducers */
+/* # Action Reducers */
 
 /**
- * Wrap event reducer to interceptor.
+ * Wrap action reducer to interceptor.
  */
 const wrapReducerToInterceptor = (id, fn) => ({
     id,
     before: context => {
         const snapshots = context.get('snapshots');
-        const event = context.get('event');
-        const effects = fn(snapshots, event);
+        const action = context.get('action');
+        const effects = fn(snapshots, action);
         return context.mergeDeep(fromJS({ effects }));
     }
 });
 
 /**
  * Define reducer.
- * - id: event id.
+ * - id: action id.
  * - interceptors: the interceptors between standard interceptors and reducer.
  * - reducer: reducer.
  */
@@ -239,11 +239,11 @@ const defineReducer = (id, interceptors, reducer) => {
 /**
  * Wrap state reducer to reducer.
  */
-const wrapStateReducerToReducer = reducer => (coffects, event) => fromJS({ state: reducer(coffects.get('state'), event) });
+const wrapStateReducerToReducer = reducer => (coffects, action) => fromJS({ state: reducer(coffects.get('state'), action) });
 
 /**
  * Define state reducer.
- * - id: event id.
+ * - id: action id.
  * - reducer: state reducer.
  */
 const defineStateReducer = (id, reducer) => defineReducer(id, [], wrapStateReducerToReducer(reducer));
@@ -268,12 +268,12 @@ const defineTransformer = defineFormula;
 /* # View */
 
 /**
- * Generates dispatchers with events declares.
+ * Generates dispatchers with action declares.
  */
-const dispatchersOf = events => Object.fromEntries(
-    Object.entries(events)
-        .map(([prop, event]) =>
-            [prop, typeof(event) === 'string'? {id: event}: event])
+const dispatchersOf = actions => Object.fromEntries(
+    Object.entries(actions)
+        .map(([prop, action]) =>
+            [prop, typeof(action) === 'string'? {id: action}: action])
         .map(([prop, { id, mode = 'async', ms = 0 }]) => {
             switch (mode) {
             case 'sync':
@@ -289,23 +289,23 @@ const dispatchersOf = events => Object.fromEntries(
         }));
 
 /**
- * Define view: connect formulas and events with pure function view.
- * - inject: map of watching formulas.
- *           key is formula id.
- *           value is prop name of component, the value of formula.
- * - events: map of firing events.
- *           key is prop name of component, the function to dispatch event.
- *           value is string event id, or object {
- *             id: string, // event id.
- *             mode: 'async' | 'sync' | 'later', // 'async' default.
- *             ms: number // 'later' mode only, 0 default.
- *           }.
+ * Define view: connect formulas and action with pure function view.
+ * - injects: map of watching formulas.
+ *            key is formula id.
+ *            value is prop name of component, the value of formula.
+ * - actions: map of dispatching actions.
+ *            key is prop name of component, the function to dispatch action.
+ *            value is string action id, or object {
+ *              id: string, // action id.
+ *              mode: 'async' | 'sync' | 'later', // 'async' default.
+ *              ms: number // 'later' mode only, 0 default.
+ *            }.
  * - view: pure function component.
  */
-const defineView = ({ inject = {}, events = {} }, view) => {
-    const formulaIds = Object.keys(inject);
-    const injectionNames = Object.values(inject);
-    const dispatchers = dispatchersOf(events);
+const defineView = ({ injects = {}, actions = {} }, view) => {
+    const formulaIds = Object.keys(injects);
+    const injectionNames = Object.values(injects);
+    const dispatchers = dispatchersOf(actions);
     return props => {
         const states = formulaIds.map(deref).map(useState);
         const getters = states

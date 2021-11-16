@@ -80,12 +80,12 @@ const ClickCount = ({ count, increase }) => (
     </>
 );
 
-// Step 2: define view, injects formulas and declares events.
+// Step 2: define view, injects formulas and declares actions.
 const ClickCountView = defineView({
-    inject: {
+    injects: {
         ':count': 'count'
     },
-    events: {
+    actions: {
         'increase': ':increase'
     }
 }, ClickCount);
@@ -93,7 +93,7 @@ const ClickCountView = defineView({
 // Step 3: provide data (from state snapshot) for component.
 defineExtractor(':count', 'count');
 
-// Step 4: handle event from component.
+// Step 4: handle action from component.
 defineStateReducer(':increase', state =>
     state.update('count', count => count + 1));
 

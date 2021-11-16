@@ -1,5 +1,6 @@
 # 2021-11
 
+* v0.0.17 @ 2021-11-16 : Delete formula when view unmounting.
 * v0.0.16 @ 2021-11-16 : Make interceptors of defineReducer optional.
 * v0.0.15 @ 2021-11-16 : Add defineListener to dispatch events as actions.
 * v0.0.14 @ 2021-11-16 : Renaming `Event` to `Action`.

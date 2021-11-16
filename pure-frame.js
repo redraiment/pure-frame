@@ -94,6 +94,21 @@ const defineFormula = (id, upstreams, fn) => {
     });
 };
 
+/**
+ * Unregister formula.
+ */
+const deleteFormula = id => {
+    delete formulas[id];
+    dependencies.upstreams[id].forEach(upstream => {
+        const downstreams = dependencies.downstreams[upstream];
+        const index = downstreams.indexOf(upstream);
+        if (index > -1) {
+            downstreams.splice(index, 1);
+        }
+    });
+    delete dependencies.upstreams[id];
+};
+
 /* # Snapshots */
 
 /**
@@ -331,11 +346,13 @@ const defineView = ({ injects = {}, actions = {} }, view) => {
 
         useEffect(() => {
             const setters = states.map(state => state[1]);
-            defineFormula(uuid(), formulaIds, (...params) => {
+            const id = uuid();
+            defineFormula(id, formulaIds, (...params) => {
                 setters.forEach((setter, index) => {
                     setter(params[index]);
                 });
             });
+            return () => deleteFormula(id);
         }, []);
 
         return React.createElement(view, {

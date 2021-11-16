@@ -10,7 +10,7 @@ const isA = (o, type) => typeof(o) === type;
 const isString = o => isA(o, 'string');
 const isFuntion = o => isA(o, 'function');
 const isArray = o => Array.isArray(o);
-const isObjet = o => !isArray(o) && isA(o, 'object');
+const isObject = o => !isArray(o) && isA(o, 'object');
 
 /* # Inner Data */
 
@@ -350,7 +350,74 @@ const PureFrameRoot = ({ state = {}, children }) => {
     return React.createElement(React.Fragment, null, children);
 };
 
+/* # Events and Listeners */
+
+/**
+ * Wrap action dispatcher to event listener.
+ */
+const wrapDispatcherToListener = dispatcher => {
+    if (isString(dispatcher)) {
+        return event => ({ action: [dispatcher, event] });
+    } else if (isObject(dispatcher)) {
+        return event => ({
+            action: [dispatcher.id, event],
+            mode: dispatcher.mode,
+            ms: dispatcher.ms
+        });
+    } else if (isFuntion(dispatcher)) {
+        return event => {
+            const action = dispatcher(event);
+            if (isArray(action)) {
+                return { action };
+            } else if (isObject(action)) {
+                return action;
+            } else {
+                throw `Invalid action: ${action}`;
+            }
+        };
+    } else {
+        throw `Invalid dispatcher: ${dispatcher}`;
+    };
+};
+
+/**
+ * Define event listener: to dispatch action when event fired.
+ * - target: object can receive events and may have listeners for them.
+ * - type: a case-sensitive string representing the event type to listen for.
+ * - dispatcher: string or function.
+ *   - string: action id. the event object will be used as params.
+ *   - function: to cast event to action and params.
+ * - options: options or useCapture, default `false`.
+ */
+const defineListener = (target, type, dispatcher, options = false) => {
+    const listener = wrapDispatcherToListener(dispatcher);
+    return target.addEventListener(type, event => {
+        const { action, mode, ms } = listener(event);
+        dispatchGeneric(action, mode, ms);
+    }, options);
+};
+
+/**
+ * Wrap setInterval & setTimeout as clock events.
+ */
+const clock = {
+    addEventListener: (type, listener, options) => {
+        const ms = isObject(options)? options.ms: options;
+        const fn = isObject(options) && options.timestamp === true? () => listener(Date.now()): listener;
+
+        switch (type) {
+        case 'interval':
+            return setInterval(fn, ms);
+        case 'timeout':
+            return setTimeout(fn, ms);
+        default:
+            throw `Unknown clock event type: ${type}`;
+        }
+    }
+};
+
 module.exports = {
+    clock,
     dispatchSync,
     dispatchLater,
     dispatch,
@@ -362,5 +429,6 @@ module.exports = {
     defineExtractor,
     defineTransformer,
     defineView,
+    defineListener,
     PureFrameRoot
 };

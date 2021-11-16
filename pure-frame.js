@@ -4,6 +4,14 @@ const ReactDOM = require('react-dom');
 const { fromJS, is, isMap, isList } = require('immutable');
 const { v4: uuid } = require('uuid');
 
+/* # Common Utilities */
+
+const isA = (o, type) => typeof(o) === type;
+const isString = o => isA(o, 'string');
+const isFuntion = o => isA(o, 'function');
+const isArray = o => Array.isArray(o);
+const isObjet = o => !isArray(o) && isA(o, 'object');
+
 /* # Inner Data */
 
 /**
@@ -54,7 +62,7 @@ const compute = id => {
     const upstreams = dependencies.upstreams[id] || [];
     const params = upstreams.map(computeIfAbsent);
     const formula = formulas[id];
-    return typeof(formula) === 'function'? formula(...params): null;
+    return isFuntion(formula)? formula(...params): null;
 };
 
 /**
@@ -227,11 +235,11 @@ const defineReducer = (id, interceptors, reducer) => {
                    wrapReducerToInterceptor(id, reducer)];
     reducers[id] = [];
 
-    chain.filter(interceptor => typeof(interceptor.before) === 'function')
+    chain.filter(interceptor => isFuntion(interceptor.before))
         .map(interceptor => interceptor.before)
         .forEach(before => reducers[id].push(before));
     chain.reverse()
-        .filter(interceptor => typeof(interceptor.after) === 'function')
+        .filter(interceptor => isFuntion(interceptor.after))
         .map(interceptor => interceptor.after)
         .forEach(after => reducers[id].push(after));
 };

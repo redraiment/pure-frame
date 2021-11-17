@@ -48,9 +48,14 @@ const reducers = {};
 const fetchers = {};
 
 /**
- * Effects and Performers;
+ * Effects and Performers.
  */
 const performers = {};
+
+/**
+ * Views.
+ */
+const views = {};
 
 /* # Compute Management */
 
@@ -340,44 +345,59 @@ const dispatchersOf = actions => Object.fromEntries(
 
 /**
  * Define view: connect formulas and action with pure function view.
- * - injects: map of watching formulas.
- *            key is formula id.
- *            value is prop name of component, the value of formula.
- * - actions: map of dispatching actions.
- *            key is prop name of component, the function to dispatch action.
- *            value is string action id, or object {
- *              id: string, // action id.
- *              mode: 'async' | 'sync' | 'later', // 'async' default.
- *              ms: number // 'later' mode only, 0 default.
- *            }.
- * - view: pure function component.
+ * - id: optional view id.
+ * - options:
+ *   - injects: map of watching formulas.
+ *              key is formula id.
+ *              value is prop name of component, the value of formula.
+ *   - actions: map of dispatching actions.
+ *              key is prop name of component, the function to dispatch action.
+ *              value is string action id, or object {
+ *                id: string, // action id.
+ *                mode: 'async' | 'sync' | 'later', // 'async' default.
+ *                ms: number // 'later' mode only, 0 default.
+ *              }.
+ * - component: pure function component.
  */
-const defineView = ({ injects = {}, actions = {} }, view) => {
+const defineView = (id, options, component) => {
+    if (!isString(id) && isUndefined(component)) {
+        component = options;
+        options = id;
+        id = undefined;
+    }
+
+    const { injects = {}, actions = {} } = options;
     const formulaIds = Object.keys(injects);
     const injectionNames = Object.values(injects);
     const dispatchers = dispatchersOf(actions);
-    return props => {
+    const view = props => {
         const states = formulaIds.map(deref).map(useState);
         const getters = states.map(state => state[0]).map(toJS);
         const injections = Object.fromEntries(injectionNames.map((name, index) => [name, getters[index]]));
 
         useEffect(() => {
             const setters = states.map(state => state[1]);
-            const id = uuid();
-            defineFormula(id, formulaIds, (...params) => {
+            const formulaId = isUndefined(id)? uuid(): id;
+            defineFormula(formulaId, formulaIds, (...params) => {
                 setters.forEach((setter, index) => {
                     setter(params[index]);
                 });
             });
-            return () => deleteFormula(id);
+            return () => deleteFormula(formulaId);
         }, []);
 
-        return React.createElement(view, {
+        return React.createElement(component, {
             ...props,
             ...injections,
             ...dispatchers
         }, props.children);
     };
+
+    if (isString(id)) {
+        views[id] = view;
+    }
+
+    return view;
 };
 
 /**

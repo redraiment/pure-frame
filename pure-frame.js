@@ -13,7 +13,7 @@ const isFuntion = o => isA(o, 'function');
 const isArray = o => Array.isArray(o);
 const isObject = o => !isArray(o) && isA(o, 'object');
 
-const toJS = o => isMap(o) || isList(o)? o.toJS(): o;
+const toJS = o => (isMap(o) || isList(o))? o.toJS(): o;
 
 /* # Inner Data */
 

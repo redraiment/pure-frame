@@ -401,6 +401,11 @@ const defineView = (id, options, component) => {
 };
 
 /**
+ * Get view by id.
+ */
+const viewOf = id => views[id];
+
+/**
  * The root of pure frame.
  * - state: default value of state.
  */
@@ -489,6 +494,7 @@ module.exports = {
     defineExtractor,
     defineTransformer,
     defineView,
+    viewOf,
     defineListener,
     PureFrameRoot
 };

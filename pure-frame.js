@@ -13,6 +13,8 @@ const isFuntion = o => isA(o, 'function');
 const isArray = o => Array.isArray(o);
 const isObject = o => !isArray(o) && isA(o, 'object');
 
+const toJS = o => isMap(o) || isList(o)? o.toJS(): o;
+
 /* # Inner Data */
 
 /**
@@ -227,16 +229,32 @@ const standardInterceptors = [{
 const defineFetcher = (id, fetcher) => fetchers[id] = fetcher;
 
 /**
+ * Execute data fetch.
+ */
+const dataFetch = (snapshots, id, params) => fetchers[id](snapshots, ...params.map(fromJS));
+
+/**
  * Wrap dataSource fetcher to interceptor.
  */
-const fetch = (id, ...params) => ({
+const fetcher = (id, ...params) => ({
     id,
     before: context => {
-        const fetcher = fetchers[id];
-        const snapshot = fetcher(context.get('snapshots'), ...params.map(fromJS));
+        const snapshot = dataFetch(context.get('snapshots'), id, params);
         return context.setIn(['snapshots', id], fromJS(snapshot));
     }
 });
+
+/**
+ * Fetch data synchronized.
+ * It's useful for initialize state.
+ * Returns JS type data.
+ */
+const fetch = (id, ...params) => {
+    const data = dataFetch(fromJS({
+        state: snapshots.state
+    }), id, params);
+    return toJS(data);
+};
 
 /* # Action Reducers */
 
@@ -339,9 +357,7 @@ const defineView = ({ injects = {}, actions = {} }, view) => {
     const dispatchers = dispatchersOf(actions);
     return props => {
         const states = formulaIds.map(deref).map(useState);
-        const getters = states
-              .map(state => state[0])
-              .map(getter => isMap(getter) || isList(getter)? getter.toJS(): getter);
+        const getters = states.map(state => state[0]).map(toJS);
         const injections = Object.fromEntries(injectionNames.map((name, index) => [name, getters[index]]));
 
         useEffect(() => {
@@ -444,6 +460,7 @@ module.exports = {
     dispatchLater,
     dispatch,
     defineFetcher,
+    fetcher,
     fetch,
     definePerformer,
     defineReducer,

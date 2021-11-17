@@ -1,5 +1,6 @@
 # 2021-11
 
+* v0.0.19 @ 2021-11-17 : Some bug fix.
 * v0.0.18 @ 2021-11-17 : Rename `fetch` to `fetcher`.
 * v0.0.17 @ 2021-11-16 : Delete formula when view unmounting.
 * v0.0.16 @ 2021-11-16 : Make interceptors of defineReducer optional.

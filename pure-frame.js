@@ -231,7 +231,8 @@ const defineFetcher = (id, fetcher) => fetchers[id] = fetcher;
 /**
  * Execute data fetch.
  */
-const dataFetch = (snapshots, id, params) => fetchers[id](snapshots, ...params.map(fromJS));
+const dataFetch = (snapshots, id, params) =>
+      fetchers[id](snapshots, ...params.map(param => fromJS(param)));
 
 /**
  * Wrap dataSource fetcher to interceptor.

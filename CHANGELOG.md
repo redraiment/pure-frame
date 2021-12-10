@@ -1,5 +1,6 @@
 # 2021-11
 
+* v0.0.22 @ 2021-12-10 : Ignore IDEA config files.
 * v0.0.21 @ 2021-12-10 : Convert result of formula to immutable.
 * v0.0.20 @ 2021-11-17 : Naming view.
 * v0.0.19 @ 2021-11-17 : Some bug fix.

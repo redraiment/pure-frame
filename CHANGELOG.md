@@ -1,5 +1,6 @@
 # 2021-11
 
+* v0.0.21 @ 2021-12-10 : Convert result of formula to immutable.
 * v0.0.20 @ 2021-11-17 : Naming view.
 * v0.0.19 @ 2021-11-17 : Some bug fix.
 * v0.0.18 @ 2021-11-17 : Rename `fetch` to `fetcher`.
@@ -9,11 +10,11 @@
 * v0.0.14 @ 2021-11-16 : Renaming `Event` to `Action`.
 * v0.0.13 @ 2021-11-15 : Packing inputs & outputs of fetcher to immutable.
 * v0.0.12 @ 2021-11-15 : Renaming again.
-* v0.0.11 @ 2021-11-14 : Refacturing defineView.
+* v0.0.11 @ 2021-11-14 : Refactoring defineView.
 * v0.0.10 @ 2021-11-11 : Always use immutable-js except views.
 * v0.0.9 @ 2021-11-11 : Use React.createElement rather than call function.
 * v0.0.8 @ 2021-11-11 : Unpacking `effect`.
-* v0.0.7 @ 2021-11-11 : Non-invasive component refacturing.
+* v0.0.7 @ 2021-11-11 : Non-invasive component refactoring.
 * v0.0.6 @ 2021-11-10 : Connect formulas and events to view function as props.
 * v0.0.5 @ 2021-11-10 : Move `event` of dispatchLater to the 1st place.
 * v0.0.4 @ 2021-11-09 : Rename concepts.

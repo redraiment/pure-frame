@@ -1,6 +1,5 @@
 const React = require('react');
 const { useState, useEffect } = React;
-const ReactDOM = require('react-dom');
 const { fromJS, is, isMap, isList } = require('immutable');
 const { v4: uuid } = require('uuid');
 
@@ -9,7 +8,7 @@ const { v4: uuid } = require('uuid');
 const isA = (o, type) => typeof(o) === type;
 const isUndefined = o => isA(o, 'undefined');
 const isString = o => isA(o, 'string');
-const isFuntion = o => isA(o, 'function');
+const isFunction = o => isA(o, 'function');
 const isArray = o => Array.isArray(o);
 const isObject = o => !isArray(o) && isA(o, 'object');
 
@@ -70,7 +69,7 @@ const compute = id => {
     const upstreams = dependencies.upstreams[id] || [];
     const params = upstreams.map(computeIfAbsent);
     const formula = formulas[id];
-    return isFuntion(formula)? formula(...params): null;
+    return isFunction(formula)? formula(...params): null;
 };
 
 /**
@@ -79,7 +78,7 @@ const compute = id => {
  */
 computeIfAbsent = id => {
     if (!(id in snapshots)) {
-        snapshots[id] = compute(id);
+        snapshots[id] = fromJS(compute(id));
     }
     return snapshots[id];
 };
@@ -293,11 +292,11 @@ const defineReducer = (id, interceptors, reducer) => {
                    wrapReducerToInterceptor(id, reducer)];
     reducers[id] = [];
 
-    chain.filter(interceptor => isFuntion(interceptor.before))
+    chain.filter(interceptor => isFunction(interceptor.before))
         .map(interceptor => interceptor.before)
         .forEach(before => reducers[id].push(before));
     chain.reverse()
-        .filter(interceptor => isFuntion(interceptor.after))
+        .filter(interceptor => isFunction(interceptor.after))
         .map(interceptor => interceptor.after)
         .forEach(after => reducers[id].push(after));
 };
@@ -428,7 +427,7 @@ const wrapDispatcherToListener = dispatcher => {
             mode: dispatcher.mode,
             ms: dispatcher.ms
         });
-    } else if (isFuntion(dispatcher)) {
+    } else if (isFunction(dispatcher)) {
         return event => {
             const action = dispatcher(event);
             if (isArray(action)) {
@@ -441,7 +440,7 @@ const wrapDispatcherToListener = dispatcher => {
         };
     } else {
         throw `Invalid dispatcher: ${dispatcher}`;
-    };
+    }
 };
 
 /**

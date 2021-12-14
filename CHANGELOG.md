@@ -1,5 +1,6 @@
 # 2021-11
 
+* v0.0.24 @ 2021-12-14 : Support injects nested values.
 * v0.0.23 @ 2021-12-10 : Convert newValue of reset to immutable.
 * v0.0.22 @ 2021-12-10 : Ignore IDEA config files.
 * v0.0.21 @ 2021-12-10 : Convert result of formula to immutable.

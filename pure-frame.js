@@ -1,6 +1,6 @@
 const React = require('react');
 const { useState, useEffect } = React;
-const { fromJS, is, isMap, isList } = require('immutable');
+const { fromJS, is, isMap, isList, Map } = require('immutable');
 const { v4: uuid } = require('uuid');
 
 /* # Common Utilities */
@@ -373,7 +373,10 @@ const defineView = (id, options, component) => {
     const view = props => {
         const states = formulaIds.map(deref).map(useState);
         const getters = states.map(state => state[0]).map(toJS);
-        const injections = Object.fromEntries(injectionNames.map((name, index) => [name, getters[index]]));
+        const injections = injectionNames.map((name, index) => [
+            isArray(name) ? name : [name],
+            getters[index]
+        ]).reduce((o, [path, getter]) => o.setIn(path, getter), Map()).toJS()
 
         useEffect(() => {
             const setters = states.map(state => state[1]);

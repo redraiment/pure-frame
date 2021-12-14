@@ -121,8 +121,9 @@ const deleteFormula = id => {
  * reset the value of `id`.
  * When the value changed, downstream formulas of `id` will be re-computed.
  */
-const reset = (id, newValue) => {
+const reset = (id, value) => {
     const origin = snapshots[id];
+    const newValue = fromJS(value);
     if (!is(origin, newValue)) {
         snapshots[id] = newValue;
         const downstreams = dependencies.downstreams[id] || [];

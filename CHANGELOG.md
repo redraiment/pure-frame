@@ -1,5 +1,6 @@
 # 2021-11
 
+* v0.0.25 @ 2022-01-12 : Compatible with lower version browsers.
 * v0.0.24 @ 2021-12-14 : Support injects nested values.
 * v0.0.23 @ 2021-12-10 : Convert newValue of reset to immutable.
 * v0.0.22 @ 2021-12-10 : Ignore IDEA config files.

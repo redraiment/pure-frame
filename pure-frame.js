@@ -5,6 +5,11 @@ const { v4: uuid } = require('uuid');
 
 /* # Common Utilities */
 
+Object.fromEntries = Object.fromEntries || (pairs => pairs.reduce((o, [key, value]) => {
+    o[key] = value;
+    return o;
+}, {}));
+
 const isA = (o, type) => typeof(o) === type;
 const isUndefined = o => isA(o, 'undefined');
 const isString = o => isA(o, 'string');

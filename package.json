@@ -1,6 +1,6 @@
 {
     "name": "pure-frame",
-    "version": "0.0.24",
+    "version": "0.0.25",
     "description": "A data-driven, functional, and reactive framework for building Modern Web Apps in JavaScript. It leverages React, inspired by re-frame.",
     "main": "./pure-frame.js",
     "homepage": "https://github.com/redraiment/pure-frame",

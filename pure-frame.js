@@ -371,7 +371,7 @@ const defineView = (id, options, component) => {
         id = undefined;
     }
 
-    const { injects = {}, actions = {} } = options;
+    const { injects = {}, actions = {}, values = {} } = options;
     const formulaIds = Object.keys(injects);
     const injectionNames = Object.values(injects);
     const dispatchers = dispatchersOf(actions);
@@ -395,6 +395,7 @@ const defineView = (id, options, component) => {
         }, []);
 
         return React.createElement(component, {
+            ...values,
             ...props,
             ...injections,
             ...dispatchers

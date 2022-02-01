@@ -1,5 +1,6 @@
 # 2021-11
 
+* v0.0.27 @ 2022-02-01 : defineView can injects constant values.
 * v0.0.26 @ 2022-02-01 : Add typescript declaration file.
 * v0.0.25 @ 2022-01-12 : Compatible with lower version browsers.
 * v0.0.24 @ 2021-12-14 : Support injects nested values.

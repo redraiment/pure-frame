@@ -1,8 +1,8 @@
 /// <reference types="react" />
 /// <reference types="react-dom" />
 
-import * as React from 'react';
 import * as Immutable from 'immutable';
+import * as React from 'react';
 
 // # PureFrameRoot
 
@@ -73,10 +73,7 @@ export declare function fetch(id: FetcherId, ...params: any[]): any;
 // # Reducer
 
 export declare type ReducerId = string;
-export declare interface Reducer {
-  (snapshot: Snapshot, action: Action): Snapshot;
-  (snapshot: Snapshot): Snapshot;
-}
+export declare type Reducer = ((snapshot: Snapshot, action: Action) => Snapshot) | ((snapshot: Snapshot) => Snapshot);
 
 export declare function defineReducer(id: ReducerId, interceptors: Interceptor[], reducer: Reducer);
 export declare function defineReducer(id: ReducerId, reducer: Reducer);
@@ -108,7 +105,8 @@ export declare function viewOf(id: ViewId): React.ReactNode;
 export declare type DependencyInjection = {
   injects?: { [key: string]: string },
   actions?: { [key: string]: string },
+  values?: { [key: string]: any },
 };
 
-export declare function defineView(id: string, dependencies: DependencyInjection, component: React.ReactNode): React.ReactNode;
-export declare function defineView(dependencies: DependencyInjection, component: React.ReactNode): React.ReactNode;
+export declare function defineView(id: string, dependencies: DependencyInjection, component: React.ReactNode): React.FunctionComponent;
+export declare function defineView(dependencies: DependencyInjection, component: React.ReactNode): React.FunctionComponent;

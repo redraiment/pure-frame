@@ -1,6 +1,6 @@
 {
     "name": "pure-frame",
-    "version": "0.0.25",
+    "version": "0.0.26",
     "description": "A data-driven, functional, and reactive framework for building Modern Web Apps in JavaScript. It leverages React, inspired by re-frame.",
     "main": "./pure-frame.js",
     "homepage": "https://github.com/redraiment/pure-frame",
@@ -21,5 +21,9 @@
         "react": ">=16.8",
         "react-dom": ">=16.8",
         "uuid": ">=8.3.2"
+    },
+    "devDependencies": {
+        "@types/react": ">=16.8",
+        "@types/react-dom": ">=16.8"
     }
 }

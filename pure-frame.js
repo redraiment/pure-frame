@@ -476,7 +476,7 @@ const defineListener = (target, type, dispatcher, options = false) => {
 const clock = {
     addEventListener: (type, listener, options) => {
         const ms = isObject(options)? options.ms: options;
-        const fn = isObject(options) && options.timestamp === true? () => listener(Date.now()): listener;
+        const fn = () => listener(Date.now());
 
         switch (type) {
         case 'interval':

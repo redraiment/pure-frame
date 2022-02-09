@@ -371,7 +371,7 @@ const defineView = (id, options, component) => {
         id = undefined;
     }
 
-    const { injects = {}, actions = {}, values = {} } = options;
+    const { inits = [], constants = {}, injects = {}, actions = {} } = options;
     const formulaIds = Object.keys(injects);
     const injectionNames = Object.values(injects);
     const dispatchers = dispatchersOf(actions);
@@ -391,11 +391,16 @@ const defineView = (id, options, component) => {
                     setter(params[index]);
                 });
             });
+
+            if (inits) {
+                inits.forEach(action => dispatch(action));
+            }
+
             return () => deleteFormula(formulaId);
         }, []);
 
         return React.createElement(component, {
-            ...values,
+            ...constants,
             ...props,
             ...injections,
             ...dispatchers

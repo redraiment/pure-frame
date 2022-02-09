@@ -1,5 +1,6 @@
 # 2021-11
 
+* v0.0.29 @ 2022-02-09 : defineView can invoke initial reducers.
 * v0.0.28 @ 2022-02-03 : Enhance declaration file.
 * v0.0.27 @ 2022-02-01 : defineView can injects constant values.
 * v0.0.26 @ 2022-02-01 : Add typescript declaration file.

@@ -103,9 +103,10 @@ export declare type ViewId = string;
 export declare function viewOf(id: ViewId): React.ReactNode;
 
 export declare type DependencyInjection = {
+  inits?: Action[],
+  constants?: { [key: string]: any },
   injects?: { [key: string]: string },
   actions?: { [key: string]: string },
-  values?: { [key: string]: any },
 };
 
 export declare function defineView(id: string, dependencies: DependencyInjection, component: React.ReactNode): React.FunctionComponent;

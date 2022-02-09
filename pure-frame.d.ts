@@ -55,7 +55,7 @@ export declare const clock: EventTarget;
 
 // # Fetcher
 
-export declare type Snapshot = Immutable.Map<string, any>;
+export declare type Snapshot = Immutable.Map<string, any> | {};
 export declare type InterceptorId = string;
 export declare type Interceptor = {
   id: InterceptorId,
